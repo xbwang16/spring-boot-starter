@@ -1,5 +1,5 @@
 /**
- *    Copyright 2015-2016 the original author or authors.
+ *    Copyright 2015-2020 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,40 +15,37 @@
  */
 package org.mybatis.spring.boot.autoconfigure;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Eddú Meléndez
  */
-public class MybatisPropertiesTest {
+class MybatisPropertiesTest {
 
-    @Test
-    public void emptyMapperLocations() {
-        MybatisProperties properties = new MybatisProperties();
-        assertThat(properties.resolveMapperLocations().length, is(0));
-    }
+  @Test
+  void emptyMapperLocations() {
+    MybatisProperties properties = new MybatisProperties();
+    assertThat(properties.resolveMapperLocations()).isEmpty();
+  }
 
-    @Test
-    public void twoLocations() {
-        MybatisProperties properties = new MybatisProperties();
-        properties
-                .setMapperLocations(new String[] {
-                        "classpath:org/mybatis/spring/boot/autoconfigure/repository/CityMapper.xml",
-                        "classpath:org/mybatis/spring/boot/autoconfigure/repository/*Mapper.xml" });
-        assertThat(properties.resolveMapperLocations().length, is(2));
-    }
+  @Test
+  void twoLocations() {
+    MybatisProperties properties = new MybatisProperties();
+    properties
+        .setMapperLocations(new String[] { "classpath:org/mybatis/spring/boot/autoconfigure/repository/CityMapper.xml",
+            "classpath:org/mybatis/spring/boot/autoconfigure/repository/*Mapper.xml" });
+    assertThat(properties.resolveMapperLocations()).hasSize(2);
+  }
 
-	@Test
-	public void twoLocationsWithOneIncorrectLocation() {
-		MybatisProperties properties = new MybatisProperties();
-		properties
-				.setMapperLocations(new String[] {
-						"classpath:org/mybatis/spring/boot/autoconfigure/repository/CityMapper.xml",
-						"classpath:org/mybatis/spring/boot/autoconfigure/repositoy/*Mapper.xml" });
-		assertThat(properties.resolveMapperLocations().length, is(1));
-	}
+  @Test
+  void twoLocationsWithOneIncorrectLocation() {
+    MybatisProperties properties = new MybatisProperties();
+    properties
+        .setMapperLocations(new String[] { "classpath:org/mybatis/spring/boot/autoconfigure/repository/CityMapper.xml",
+            "classpath:org/mybatis/spring/boot/autoconfigure/repositoy/*Mapper.xml" });
+    assertThat(properties.resolveMapperLocations()).hasSize(1);
+  }
 
 }

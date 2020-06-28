@@ -1,5 +1,5 @@
 /**
- *    Copyright 2015-2016 the original author or authors.
+ *    Copyright 2015-2020 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,10 +16,11 @@
 package org.mybatis.spring.boot.autoconfigure;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.stream.Stream;
 
+import org.apache.ibatis.scripting.LanguageDriver;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.ExecutorType;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -29,7 +30,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 
 /**
- * Configuration properties for Mybatis.
+ * Configuration properties for MyBatis.
  *
  * @author Eddú Meléndez
  * @author Kazuki Shimizu
@@ -39,28 +40,36 @@ public class MybatisProperties {
 
   public static final String MYBATIS_PREFIX = "mybatis";
 
+  private static final ResourcePatternResolver resourceResolver = new PathMatchingResourcePatternResolver();
+
   /**
-   * Config file path.
+   * Location of MyBatis xml config file.
    */
   private String configLocation;
 
   /**
-   * Location of mybatis mapper files.
+   * Locations of MyBatis mapper files.
    */
   private String[] mapperLocations;
 
   /**
-   * Package to scan domain objects.
+   * Packages to search type aliases. (Package delimiters are ",; \t\n")
    */
   private String typeAliasesPackage;
 
   /**
-   * Package to scan handlers.
+   * The super class for filtering type alias. If this not specifies, the MyBatis deal as type alias all classes that
+   * searched from typeAliasesPackage.
+   */
+  private Class<?> typeAliasesSuperType;
+
+  /**
+   * Packages to search for type handlers. (Package delimiters are ",; \t\n")
    */
   private String typeHandlersPackage;
 
   /**
-   * Check the config file exists.
+   * Indicates whether perform presence check of the MyBatis xml config file.
    */
   private boolean checkConfigLocation = false;
 
@@ -70,15 +79,24 @@ public class MybatisProperties {
   private ExecutorType executorType;
 
   /**
-   * A Configuration object for customize default settings. If {@link #configLocation}
-   * is specified, this property is not used.
+   * The default scripting language driver class. (Available when use together with mybatis-spring 2.0.2+)
+   */
+  private Class<? extends LanguageDriver> defaultScriptingLanguageDriver;
+
+  /**
+   * Externalized properties for MyBatis configuration.
+   */
+  private Properties configurationProperties;
+
+  /**
+   * A Configuration object for customize default settings. If {@link #configLocation} is specified, this property is
+   * not used.
    */
   @NestedConfigurationProperty
   private Configuration configuration;
 
   /**
    * @since 1.1.0
-   * @return
    */
   public String getConfigLocation() {
     return this.configLocation;
@@ -86,20 +104,9 @@ public class MybatisProperties {
 
   /**
    * @since 1.1.0
-   * @return
    */
   public void setConfigLocation(String configLocation) {
     this.configLocation = configLocation;
-  }
-
-  @Deprecated
-  public String getConfig() {
-    return this.configLocation;
-  }
-
-  @Deprecated
-  public void setConfig(String config) {
-    this.configLocation = config;
   }
 
   public String[] getMapperLocations() {
@@ -126,6 +133,20 @@ public class MybatisProperties {
     this.typeAliasesPackage = typeAliasesPackage;
   }
 
+  /**
+   * @since 1.3.3
+   */
+  public Class<?> getTypeAliasesSuperType() {
+    return typeAliasesSuperType;
+  }
+
+  /**
+   * @since 1.3.3
+   */
+  public void setTypeAliasesSuperType(Class<?> typeAliasesSuperType) {
+    this.typeAliasesSuperType = typeAliasesSuperType;
+  }
+
   public boolean isCheckConfigLocation() {
     return this.checkConfigLocation;
   }
@@ -142,6 +163,34 @@ public class MybatisProperties {
     this.executorType = executorType;
   }
 
+  /**
+   * @since 2.1.0
+   */
+  public Class<? extends LanguageDriver> getDefaultScriptingLanguageDriver() {
+    return defaultScriptingLanguageDriver;
+  }
+
+  /**
+   * @since 2.1.0
+   */
+  public void setDefaultScriptingLanguageDriver(Class<? extends LanguageDriver> defaultScriptingLanguageDriver) {
+    this.defaultScriptingLanguageDriver = defaultScriptingLanguageDriver;
+  }
+
+  /**
+   * @since 1.2.0
+   */
+  public Properties getConfigurationProperties() {
+    return configurationProperties;
+  }
+
+  /**
+   * @since 1.2.0
+   */
+  public void setConfigurationProperties(Properties configurationProperties) {
+    this.configurationProperties = configurationProperties;
+  }
+
   public Configuration getConfiguration() {
     return configuration;
   }
@@ -151,18 +200,16 @@ public class MybatisProperties {
   }
 
   public Resource[] resolveMapperLocations() {
-    ResourcePatternResolver resourceResolver = new PathMatchingResourcePatternResolver();
-    List<Resource> resources = new ArrayList<Resource>();
-    if (this.mapperLocations != null) {
-      for (String mapperLocation : this.mapperLocations) {
-        try {
-          Resource[] mappers = resourceResolver.getResources(mapperLocation);
-          resources.addAll(Arrays.asList(mappers));
-        } catch (IOException e) {
-          // ignore
-        }
-      }
-    }
-    return resources.toArray(new Resource[resources.size()]);
+    return Stream.of(Optional.ofNullable(this.mapperLocations).orElse(new String[0]))
+        .flatMap(location -> Stream.of(getResources(location))).toArray(Resource[]::new);
   }
+
+  private Resource[] getResources(String location) {
+    try {
+      return resourceResolver.getResources(location);
+    } catch (IOException e) {
+      return new Resource[0];
+    }
+  }
+
 }

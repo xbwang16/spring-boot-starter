@@ -1,5 +1,5 @@
 /**
- *    Copyright 2015-2016 the original author or authors.
+ *    Copyright 2015-2020 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,30 +15,27 @@
  */
 package sample.mybatis;
 
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.OutputCapture;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import extensions.CaptureSystemOutput;
+import extensions.CaptureSystemOutput.OutputCapture;
 
 /**
  * @author Eddú Meléndez
+ * @author Kazuki Shimizu
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = SampleXmlApplication.class)
-public class SampleMybatisApplicationTest {
+@CaptureSystemOutput
+@SpringBootTest
+class SampleMybatisApplicationTest {
 
-	@ClassRule
-	public static OutputCapture out = new OutputCapture();
+  @Test
+  void test(OutputCapture outputCapture) {
+    String output = outputCapture.toString();
+    assertThat(output).contains("1,San Francisco,CA,US");
+    assertThat(output).contains("1,Conrad Treasury Place,William & George Streets,4001");
+  }
 
-	@Test
-	public void test() {
-		String output = out.toString();
-		assertTrue("Wrong output: " + output, output.contains("1,San Francisco,CA,US"));
-		assertTrue("Wrong output: " + output, output.contains("1,Conrad Treasury Place,William & George Streets,4001"));
-	}
-	
 }

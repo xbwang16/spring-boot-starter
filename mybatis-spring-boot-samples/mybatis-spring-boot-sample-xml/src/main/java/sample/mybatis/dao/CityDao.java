@@ -1,5 +1,5 @@
 /**
- *    Copyright 2015-2016 the original author or authors.
+ *    Copyright 2015-2020 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package sample.mybatis.dao;
 
 import org.apache.ibatis.session.SqlSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import sample.mybatis.domain.City;
@@ -27,11 +26,14 @@ import sample.mybatis.domain.City;
 @Component
 public class CityDao {
 
-	@Autowired
-	private SqlSession sqlSession;
+  private final SqlSession sqlSession;
 
-	public City selectCityById(long id) {
-		return this.sqlSession.selectOne("selectCityById", id);
-	}
+  public CityDao(SqlSession sqlSession) {
+    this.sqlSession = sqlSession;
+  }
+
+  public City selectCityById(long id) {
+    return this.sqlSession.selectOne("selectCityById", id);
+  }
 
 }

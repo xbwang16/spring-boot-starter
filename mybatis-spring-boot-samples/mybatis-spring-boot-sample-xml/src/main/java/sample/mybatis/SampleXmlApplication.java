@@ -1,5 +1,5 @@
 /**
- *    Copyright 2015-2016 the original author or authors.
+ *    Copyright 2015-2020 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package sample.mybatis;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -26,20 +25,24 @@ import sample.mybatis.mapper.HotelMapper;
 @SpringBootApplication
 public class SampleXmlApplication implements CommandLineRunner {
 
-	@Autowired
-	private CityDao cityDao;
+  public static void main(String[] args) {
+    SpringApplication.run(SampleXmlApplication.class, args);
+  }
 
-	@Autowired
-	private HotelMapper hotelMapper;
-	
-	public static void main(String[] args) {
-		SpringApplication.run(SampleXmlApplication.class, args);
-	}
+  private final CityDao cityDao;
 
-	@Override
-	public void run(String... args) throws Exception {
-		System.out.println(this.cityDao.selectCityById(1));
-		System.out.println(this.hotelMapper.selectByCityId(1));
-	}
+  private final HotelMapper hotelMapper;
+
+  public SampleXmlApplication(CityDao cityDao, HotelMapper hotelMapper) {
+    this.cityDao = cityDao;
+    this.hotelMapper = hotelMapper;
+  }
+
+  @Override
+  @SuppressWarnings("squid:S106")
+  public void run(String... args) {
+    System.out.println(this.cityDao.selectCityById(1));
+    System.out.println(this.hotelMapper.selectByCityId(1));
+  }
 
 }
